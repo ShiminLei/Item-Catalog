@@ -1,33 +1,35 @@
 #! /usr/bin/env python
-from flask import Flask, render_template, request, redirect,jsonify, url_for, flash
+import string
+import random
+import requests
+from flask import make_response
+import json
+import httplib2
+from oauth2client.client import FlowExchangeError
+from oauth2client.client import flow_from_clientsecrets
+from flask import session as login_session
+from database_setup import Base, Catalog, Item, User
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine, asc
+from flask import Flask, render_template, request, redirect, jsonify, url_for, flash
 app = Flask(__name__)
 
-from sqlalchemy import create_engine, asc
-from sqlalchemy.orm import sessionmaker
-from database_setup import Base, Catalog, Item, User
 
 # New imports for create anti forgery state token
-from flask import session as login_session
-import random, string
 # imports for GConnect
-from oauth2client.client import flow_from_clientsecrets
-from oauth2client.client import FlowExchangeError
-import httplib2
-import json
-from flask import make_response
-import requests
 
 CLIENT_ID = json.loads(
     open('client_secrets.json', 'r').read())['web']['client_id']
 
 APPLICATION_NAME = "Catalog Application"
 
-#Connect to Database and create database session
+# Connect to Database and create database session
 engine = create_engine('sqlite:///catalogwithusers.db')
 Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
+
 
 # User Helper Functions
 def createUser(login_session):
@@ -61,10 +63,12 @@ def getUserID(email):
 # Store it in the session for later validation.
 @app.route('/login')
 def showLogin():
-    state = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(32))
+    state = ''.join(random.choice(string.ascii_uppercase + string.digits)
+                    for x in range(32))
     login_session['state'] = state
     # return "The current session state is %s" % login_session['state']
     return render_template('login.html', STATE=state)
+
 
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
@@ -164,7 +168,8 @@ def gdisconnect():
     access_token = login_session.get('access_token')
     if access_token is None:
         print 'Access Token is None'
-        response = make_response(json.dumps('Current user not connected.'), 401)
+        response = make_response(json.dumps(
+            'Current user not connected.'), 401)
         response.headers['Content-Type'] = 'application/json'
         return response
     print 'In gdisconnect access token is %s', access_token
@@ -187,12 +192,13 @@ def gdisconnect():
         return response
     else:
         # For whatever reason, the given token was invalid
-        response = make_response(json.dumps('Failed to revoke token for given user.', 400))
+        response = make_response(json.dumps(
+            'Failed to revoke token for given user.', 400))
         response.headers['Content-Type'] = 'application/json'
         return response
 
 
-#JSON APIs to view Information
+# JSON APIs to view Information
 @app.route('/catalog.json')
 def catalogJSON():
     DBSession = sessionmaker(bind=engine)
@@ -200,15 +206,16 @@ def catalogJSON():
     catalogs = session.query(Catalog).all()
     catalogs_dict = [c.serialize for c in catalogs]
     for c in range(len(catalogs_dict)):
-        items = [i.serialize for i in session.query(Item).filter_by(catalog_id=catalogs_dict[c]["id"]).all()]
+        items = [i.serialize for i in session.query(Item).filter_by(
+            catalog_id=catalogs_dict[c]["id"]).all()]
         if items:
-           catalogs_dict[c]["Item"] = items
+            catalogs_dict[c]["Item"] = items
     return jsonify(Category=catalogs_dict)
 
 
 # CRUD
 # --------------------------------------------------------
-#Show all catalogs
+# Show all catalogs
 @app.route('/')
 def showCatalogs():
     DBSession = sessionmaker(bind=engine)
@@ -222,20 +229,20 @@ def showCatalogs():
 
 
 # -------- items ------------
-#Show a catalog items
+# Show a catalog items
 @app.route('/catalog/<string:catalog_name>/items/')
 def showItem(catalog_name):
     DBSession = sessionmaker(bind=engine)
     session = DBSession()
-    catalog = session.query(Catalog).filter_by(name = catalog_name).one()
-    items = session.query(Item).filter_by(catalog_id = catalog.id).all()
-    counts = session.query(Item).filter_by(catalog_id = catalog.id).count()
+    catalog = session.query(Catalog).filter_by(name=catalog_name).one()
+    items = session.query(Item).filter_by(catalog_id=catalog.id).all()
+    counts = session.query(Item).filter_by(catalog_id=catalog.id).count()
     if 'username' not in login_session:
-        return render_template('publicitem.html', items = items, counts=counts,
-            catalog=catalog)
+        return render_template('publicitem.html', items=items, counts=counts,
+                               catalog=catalog)
     else:
-        return render_template('item.html', items = items, counts=counts,
-            catalog=catalog)
+        return render_template('item.html', items=items, counts=counts,
+                               catalog=catalog)
 
 
 # Show a item description
@@ -252,73 +259,76 @@ def showDescription(catalog_name, item_name):
         return render_template('description.html', item=item,
                                catalog=catalog)
 
-#Create a new item
-@app.route('/catalog/item/new',methods=['GET','POST'])
+# Create a new item
+@app.route('/catalog/item/new', methods=['GET', 'POST'])
 def newItem():
     DBSession = sessionmaker(bind=engine)
     session = DBSession()
     if 'username' not in login_session:
         return redirect('/login')
     if request.method == 'POST':
-        newCatalog = session.query(Catalog).filter_by(name=request.form['catalog']).one()
-        newItem = Item(name = request.form['name'],
-            description = request.form['description'],
-            catalog_id = newCatalog.id)
+        newCatalog = session.query(Catalog).filter_by(
+            name=request.form['catalog']).one()
+        newItem = Item(name=request.form['name'],
+                       description=request.form['description'],
+                       catalog_id=newCatalog.id)
         session.add(newItem)
         session.commit()
         flash('New Item %s Item Successfully Created' % (newItem.name))
-        return redirect(url_for('showItem', catalog_name = newCatalog.name))
+        return redirect(url_for('showItem', catalog_name=newCatalog.name))
     else:
         catalogs = session.query(Catalog).all()
-        return render_template('newItem.html',catalogs=catalogs)
+        return render_template('newItem.html', catalogs=catalogs)
 
-#Edit an item
-@app.route('/catalog/<string:item_name>/edit', methods=['GET','POST'])
+
+# Edit an item
+@app.route('/catalog/<string:item_name>/edit', methods=['GET', 'POST'])
 def editItem(item_name):
     DBSession = sessionmaker(bind=engine)
     session = DBSession()
     if 'username' not in login_session:
         return redirect('/login')
-    editedItem = session.query(Item).filter_by(name = item_name).one()
-    itemCatalog = session.query(Catalog).filter_by(id =editedItem.catalog_id).one()
+    editedItem = session.query(Item).filter_by(name=item_name).one()
+    itemCatalog = session.query(Catalog).filter_by(
+        id=editedItem.catalog_id).one()
     if request.method == 'POST':
         if request.form['name']:
             editedItem.name = request.form['name']
         if request.form['description']:
             editedItem.description = request.form['description']
         if request.form['catalog']:
-            editedCatalog = session.query(Catalog).filter_by(name=request.form['catalog']).one()
+            editedCatalog = session.query(Catalog).filter_by(
+                name=request.form['catalog']).one()
             editedItem.catalog_id = editedCatalog.id
         session.add(editedItem)
         session.commit()
         flash('Item Successfully Edited')
-        return redirect(url_for('showItem', catalog_name = itemCatalog.name))
+        return redirect(url_for('showItem', catalog_name=itemCatalog.name))
     else:
         catalogs = session.query(Catalog).all()
-        return render_template('editItem.html', item = editedItem, itemCatalog=itemCatalog, catalogs=catalogs)
+        return render_template('editItem.html', item=editedItem, itemCatalog=itemCatalog, catalogs=catalogs)
 
 
-#Delete a item
-@app.route('/catalog/<string:item_name>/delete', methods = ['GET','POST'])
+# Delete a item
+@app.route('/catalog/<string:item_name>/delete', methods=['GET', 'POST'])
 def deleteItem(item_name):
     DBSession = sessionmaker(bind=engine)
     session = DBSession()
     if 'username' not in login_session:
         return redirect('/login')
-    itemToDelete = session.query(Item).filter_by(name =item_name).one()
-    itemCatalog = session.query(Catalog).filter_by(id =itemToDelete.catalog_id).one()
+    itemToDelete = session.query(Item).filter_by(name=item_name).one()
+    itemCatalog = session.query(Catalog).filter_by(
+        id=itemToDelete.catalog_id).one()
     if request.method == 'POST':
         session.delete(itemToDelete)
         session.commit()
         flash('Item Successfully Deleted')
-        return redirect(url_for('showItem', catalog_name = itemCatalog.name))
+        return redirect(url_for('showItem', catalog_name=itemCatalog.name))
     else:
-        return render_template('deleteItem.html', item = itemToDelete)
-
-
+        return render_template('deleteItem.html', item=itemToDelete)
 
 
 if __name__ == '__main__':
-  app.secret_key = 'super_secret_key'
-  app.debug = True
-  app.run(host = '0.0.0.0', port = 5000)
+    app.secret_key = 'super_secret_key'
+    app.debug = True
+    app.run(host='0.0.0.0', port=5000)
