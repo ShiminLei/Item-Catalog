@@ -14,7 +14,8 @@ session = DBSession()
 
 # Create dummy user
 User = User(name="Robo Barista", email="tinnyTim@udacity.com",
-            picture='https://pbs.twimg.com/profile_images/2671170543/18debd694829ed78203a5a36dd364160_400x400.png')
+            picture='https://pbs.twimg.com/profile_images/2671170543/'
+                    '18debd694829ed78203a5a36dd364160_400x400.png')
 session.add(User)
 session.commit()
 
@@ -30,7 +31,8 @@ session.add(item)
 session.commit()
 
 item = Item(user_id=1, name="Snowboard",
-            description="SnowboardSnowboardSnowboardSnowboard", catalog=catalog)
+            description="SnowboardSnowboardSnowboardSnowboard",
+            catalog=catalog)
 session.add(item)
 session.commit()
 

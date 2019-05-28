@@ -11,7 +11,8 @@ from flask import session as login_session
 from database_setup import Base, Catalog, Item, User
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, asc
-from flask import Flask, render_template, request, redirect, jsonify, url_for, flash
+from flask import Flask, render_template, \
+    request, redirect, jsonify, url_for, flash
 app = Flask(__name__)
 
 
@@ -123,8 +124,8 @@ def gconnect():
     stored_access_token = login_session.get('access_token')
     stored_gplus_id = login_session.get('gplus_id')
     if stored_access_token is not None and gplus_id == stored_gplus_id:
-        response = make_response(json.dumps('Current user is already connected.'),
-                                 200)
+        response = make_response(
+            json.dumps('Current user is already connected.'), 200)
         response.headers['Content-Type'] = 'application/json'
         return response
 
@@ -155,7 +156,11 @@ def gconnect():
     output += '!</h1>'
     output += '<img src="'
     output += login_session['picture']
-    output += ' " style = "width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
+    output += ' " style = "width: 300px; ' \
+              'height: 300px;' \
+              'border-radius: 150px;' \
+              '-webkit-border-radius: 150px;' \
+              '-moz-border-radius: 150px;"> '
     flash("you are now logged in as %s" % login_session['username'])
     print("done!")
     return output
@@ -176,7 +181,8 @@ def gdisconnect():
     print 'User name is: '
     print login_session['username']
     # Execute HTTP GET request to revoke current token.
-    url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % login_session['access_token']
+    url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' \
+          % login_session['access_token']
     h = httplib2.Http()
     result = h.request(url, 'GET')[0]
     print 'result is '
@@ -199,7 +205,8 @@ def gdisconnect():
 
 
 # JSON APIs to view Information
-@app.route('/catalog.json')
+@app.route('/JSON')
+@app.route('/catalog/JSON')
 def catalogJSON():
     DBSession = sessionmaker(bind=engine)
     session = DBSession()
@@ -213,6 +220,21 @@ def catalogJSON():
     return jsonify(Category=catalogs_dict)
 
 
+@app.route('/catalog/<string:catalog_name>/items/JSON')
+def categoryItemsJSON(catalog_name):
+    catalog = session.query(Catalog).filter_by(name=catalog_name).one()
+    items = session.query(Item).filter_by(catalog=catalog).all()
+    return jsonify(items=[i.serialize for i in items])
+
+
+@app.route('/catalog/<string:catalog_name>/<string:item_name>/JSON')
+def ItemJSON(catalog_name, item_name):
+    catalog = session.query(Catalog).filter_by(name=catalog_name).one()
+    item = session.query(Item).filter_by(name=item_name,
+                                         catalog=catalog).one()
+    return jsonify(item=[item.serialize])
+
+
 # CRUD
 # --------------------------------------------------------
 # Show all catalogs
@@ -223,7 +245,8 @@ def showCatalogs():
     catalogs = session.query(Catalog).all()
     items = session.query(Item).order_by(Item.id.desc())
     if 'username' not in login_session:
-        return render_template('publiccatalogs.html', catalogs=catalogs, items=items)
+        return render_template('publiccatalogs.html',
+                               catalogs=catalogs, items=items)
     else:
         return render_template('catalogs.html', catalogs=catalogs, items=items)
 
@@ -271,7 +294,8 @@ def newItem():
             name=request.form['catalog']).one()
         newItem = Item(name=request.form['name'],
                        description=request.form['description'],
-                       catalog_id=newCatalog.id)
+                       catalog_id=newCatalog.id,
+                       user_id=login_session['user_id'])
         session.add(newItem)
         session.commit()
         flash('New Item %s Item Successfully Created' % (newItem.name))
@@ -291,6 +315,11 @@ def editItem(item_name):
     editedItem = session.query(Item).filter_by(name=item_name).one()
     itemCatalog = session.query(Catalog).filter_by(
         id=editedItem.catalog_id).one()
+    if login_session['user_id'] != editedItem.user_id:
+        return "<script>function myFunction() " \
+               "{alert('You are not authorized to edit the item !" \
+               " Please create your own item.');}" \
+               "</script><body onload='myFunction()''>"
     if request.method == 'POST':
         if request.form['name']:
             editedItem.name = request.form['name']
@@ -306,7 +335,8 @@ def editItem(item_name):
         return redirect(url_for('showItem', catalog_name=itemCatalog.name))
     else:
         catalogs = session.query(Catalog).all()
-        return render_template('editItem.html', item=editedItem, itemCatalog=itemCatalog, catalogs=catalogs)
+        return render_template('editItem.html', item=editedItem,
+                               itemCatalog=itemCatalog, catalogs=catalogs)
 
 
 # Delete a item
@@ -319,6 +349,11 @@ def deleteItem(item_name):
     itemToDelete = session.query(Item).filter_by(name=item_name).one()
     itemCatalog = session.query(Catalog).filter_by(
         id=itemToDelete.catalog_id).one()
+    if login_session['user_id'] != itemToDelete.user_id:
+        return "<script>function myFunction() " \
+               "{alert('You are not authorized to delete the item !" \
+               " Please create your own item.');}" \
+               "</script><body onload='myFunction()''>"
     if request.method == 'POST':
         session.delete(itemToDelete)
         session.commit()
