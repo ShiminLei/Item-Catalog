@@ -1,7 +1,7 @@
 
 # Description
 
-This is a project made for a Restaurant Menu Website.
+This is a project made for a Item Catalog Website.
 
 # Requirements
 
