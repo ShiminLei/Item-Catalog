@@ -14,7 +14,7 @@ from sqlalchemy import create_engine, asc
 from flask import Flask, render_template, \
     request, redirect, jsonify, url_for, flash
 
-from database_setup import Base, Catalog, Item, User
+from ItemCatalog.database_setup import Base, Catalog, Item, User
 
 app = Flask(__name__)
 
