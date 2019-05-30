@@ -1,7 +1,6 @@
 Cheetah==2.4.4
 Flask==0.12.3
 Jinja2==2.10.1
-Landscape-Client
 PAM==0.4.2
 PyYAML==4.2b1
 SQLAlchemy==1.3.0
