@@ -34,10 +34,10 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/__init__.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="360">
-              <caret line="24" column="10" lean-forward="true" selection-start-line="24" selection-start-column="10" selection-end-line="24" selection-end-column="10" />
+            <state relative-caret-position="285">
+              <caret line="19" lean-forward="true" selection-start-line="19" selection-end-line="19" />
               <folding>
-                <element signature="e#23#36#0" expanded="true" />
+                <element signature="e#23#29#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -267,12 +267,12 @@
       <workItem from="1558991699034" duration="19085000" />
       <workItem from="1559017529663" duration="6385000" />
       <workItem from="1559241472649" duration="2580000" />
-      <workItem from="1559244290106" duration="2935000" />
+      <workItem from="1559244290106" duration="3450000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="42654000" />
+    <option name="totallyTimeSpent" value="43169000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1440" height="900" extended-state="6" />
@@ -478,10 +478,10 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="360">
-          <caret line="24" column="10" lean-forward="true" selection-start-line="24" selection-start-column="10" selection-end-line="24" selection-end-column="10" />
+        <state relative-caret-position="285">
+          <caret line="19" lean-forward="true" selection-start-line="19" selection-end-line="19" />
           <folding>
-            <element signature="e#23#36#0" expanded="true" />
+            <element signature="e#23#29#0" expanded="true" />
           </folding>
         </state>
       </provider>

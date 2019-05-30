@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+import os
 import string
 import random
 import requests
@@ -13,7 +14,7 @@ from sqlalchemy import create_engine, asc
 from flask import Flask, render_template, \
     request, redirect, jsonify, url_for, flash
 
-from ItemCatalog.database_setup import Base, Catalog, Item, User
+from database_setup import Base, Catalog, Item, User
 
 app = Flask(__name__)
 
@@ -22,7 +23,7 @@ app = Flask(__name__)
 # imports for GConnect
 
 CLIENT_ID = json.loads(
-    open('ItemCatalog/client_secrets.json', 'r').read())['web']['client_id']
+    open(os.path.dirname(__file__)+'/client_secrets.json', 'r').read())['web']['client_id']
 
 APPLICATION_NAME = "Catalog Application"
 
