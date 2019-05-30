@@ -8,11 +8,13 @@ import httplib2
 from oauth2client.client import FlowExchangeError
 from oauth2client.client import flow_from_clientsecrets
 from flask import session as login_session
-from database_setup import Base, Catalog, Item, User
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, asc
 from flask import Flask, render_template, \
     request, redirect, jsonify, url_for, flash
+
+from ItemCatalog.database_setup import Base, Catalog, Item, User
+
 app = Flask(__name__)
 
 
