@@ -14,17 +14,19 @@ This is a project made for a Item Catalog Website.
 # <span id="data">Data</span>
 
 1. `python database_setup.py` to build the database.
-2. `python lotsofitems.py` to write in the data samples.
+
+2. `python lotsofitems.py` to write in the data samples.   
 
 # Setup
 
 1. Fork the [fullstack-nanodegree-vm](https://github.com/udacity/fullstack-nanodegree-vm) .
-2.  `git clone http://github.com/<username>/fullstack-nanodegree-vm fullstack`
-3. `vagrant up`  to start up the virtual machine.
-4. `vagrant ssh` to log into the virtual machine.
-5. `cd /vagrant`, copy the project into the directory.
-6. Prepare the data according to [Data](#data).
-7. `python project.py` to start the server.
+2. `sudo pip install -r requirements.txt`
+3. `git clone http://github.com/<username>/fullstack-nanodegree-vm fullstack`
+4. `vagrant up`  to start up the virtual machine.
+5. `vagrant ssh` to log into the virtual machine.
+6. `cd /vagrant`, copy the project into the directory.
+7. Prepare the data according to [Data](#data).
+8. `python project.py` to start the server.
 
 # <span id="view">Browse Instruction</span>
 
