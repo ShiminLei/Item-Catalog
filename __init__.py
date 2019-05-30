@@ -22,7 +22,7 @@ app = Flask(__name__)
 # imports for GConnect
 
 CLIENT_ID = json.loads(
-    open('client_secrets.json', 'r').read())['web']['client_id']
+    open('./ItemCatalog/client_secrets.json', 'r').read())['web']['client_id']
 
 APPLICATION_NAME = "Catalog Application"
 
